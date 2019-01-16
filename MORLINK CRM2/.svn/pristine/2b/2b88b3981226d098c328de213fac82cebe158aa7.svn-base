@@ -1,0 +1,26 @@
+package com.morlink.dev.beans;
+
+public class CategorieTarifaire {
+	
+	private String idCategorieTarifaire;
+	private String libelleCategorieTarifaire;
+
+	public String getLibelleCategorieTarifaire() {
+		return this.libelleCategorieTarifaire;
+	}
+
+	public void setLibelleCategorieTarifaire(String libelleCategorieTarifaire) {
+		this.libelleCategorieTarifaire = libelleCategorieTarifaire;
+	}
+
+	public String getIdCategorieTarifaire()
+	{
+		return idCategorieTarifaire;
+	}
+
+	public void setIdCategorieTarifaire(String idCategorieTarifaire)
+	{
+		this.idCategorieTarifaire = idCategorieTarifaire;
+	}
+
+}

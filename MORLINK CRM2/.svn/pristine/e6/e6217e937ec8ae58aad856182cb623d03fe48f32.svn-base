@@ -1,0 +1,20 @@
+package com.morlink.dev.beans;
+
+public class Catalogue {
+	private String catalogueArticle;
+	private Article article;
+	public String getCatalogueArticle() {
+		return catalogueArticle;
+	}
+	public void setCatalogueArticle(String catalogueArticle) {
+		this.catalogueArticle = catalogueArticle;
+	}
+	public Article getArticle() {
+		return article;
+	}
+	public void setArticle(Article article) {
+		this.article = article;
+	}
+
+	
+}

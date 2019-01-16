@@ -1,0 +1,405 @@
+package com.morlink.dev.dao;
+
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import com.morlink.dev.beans.Devis;
+import com.morlink.dev.beans.LigneDevis;
+import com.morlink.dev.servicesmetier.crm.MEtablissementDevis;
+
+
+public class Devis_DAO
+{
+	
+	private static Connection connection;
+	private PreparedStatement st; 
+	
+	public Devis_DAO()
+	{
+		// TODO Auto-generated constructor stub
+		try
+		{
+			connection = MEtablissementDevis.getConnection();
+		}
+		catch (Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public LigneDevis getLigneDevis(String codeArticle,String numDevis){
+		LigneDevis lignedevis = new LigneDevis();
+		try{
+			String request1 = "select codeArticle,designationArticle,prixpardefaut,prixtarifCommercial,prixtarifADV,"
+					+ "qte,avecCatalogue,qtelivree,qtereste,qtealivree from LigneDevis where codeArticle = ? and devis_ndevis = ? ";
+			st =connection.prepareStatement(request1);
+			st.setString(1, codeArticle);
+			st.setString(2, numDevis);
+			ResultSet rsld = st.executeQuery();
+			while(rsld.next()){
+				
+				lignedevis.setCodeArticle(rsld.getString(1));
+				lignedevis.setDesignationArticle(rsld.getString(2));
+				lignedevis.setPrixpardefaut(rsld.getFloat(3));
+				lignedevis.setPrixtarifCommercial(rsld.getFloat(4));
+				lignedevis.setPrixtarifADV(rsld.getFloat(5));
+				lignedevis.setQte(rsld.getFloat(6));
+				lignedevis.setAvecCatalogue(rsld.getBoolean(7));
+				lignedevis.setQtelivre(rsld.getFloat(8));
+				lignedevis.setQtereste(rsld.getFloat(9));
+				lignedevis.setQtealivre(rsld.getFloat(10));
+				
+				Devis devis = new Devis();
+				devis.setNdevis(numDevis);
+				lignedevis.setDevis(devis);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return lignedevis;
+	}
+	
+	public float getRelanceDevis(String numDevis){
+		String request = "select NbrRelanceClient from Devis where Ndevis = ? ";
+		float nombreRelance = 0;
+		try
+		{
+			st =connection.prepareStatement(request);
+			st.setString(1, numDevis);
+			ResultSet rs  = st.executeQuery();
+			while(rs.next()){
+				nombreRelance = rs.getFloat(1);
+			}
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return nombreRelance;
+	}
+	
+	public void updateRelanceDevis(String numDevis, float nombreRelance){
+		String request = "update Devis set NbrRelanceClient = ? where Ndevis = ? ";
+		try
+		{
+			st =connection.prepareStatement(request);
+			st.setFloat(1, nombreRelance);
+			st.setString(2, numDevis);
+			st.execute();
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void addLigneDevisArchive(Devis devis) {
+		
+		try
+		{
+			
+			String requestForLigneDevisArchive = "INSERT INTO LigneDevisArchive(codeArticle,designationArticle,prixpardefaut,prixtarifCommercial,prixtarifADV,qte,avecCatalogue,devis_ndevis)"
+					+ "VALUES(?,?,?,?,?,?,?,?)";
+			PreparedStatement st2 = connection.prepareStatement(requestForLigneDevisArchive);
+			for(LigneDevis ld : devis.getLigneDevises()){
+				
+				st2.setString(1, ld.getCodeArticle());
+				st2.setString(2, ld.getDesignationArticle());
+				st2.setFloat(3, ld.getPrixpardefaut());
+				st2.setFloat(4, ld.getPrixtarifCommercial());
+				st2.setFloat(5, ld.getPrixtarifADV());
+				st2.setFloat(6, ld.getQte());
+				st2.setBoolean(7, ld.isAvecCatalogue());
+				st2.setString(8, devis.getNdevis());
+				st2.execute();
+			}
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			try
+			{
+				connection.close();
+			}
+			catch (SQLException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public void addLigneDevis(Devis devis) {
+		
+		try
+		{
+			
+			String requestForDeleteLigneDevis = "DELETE From LigneDevis where devis_ndevis = ?";
+			
+			st = connection.prepareStatement(requestForDeleteLigneDevis);
+			st.setString(1, devis.getNdevis());
+			st.execute();
+			
+			String requestForLigneDevis = "INSERT INTO LigneDevis(codeArticle,designationArticle,prixpardefaut,prixtarifCommercial,prixtarifADV,qte,avecCatalogue,devis_ndevis,qtereste,qtealivree,qtelivree)"
+					+ "VALUES(?,?,?,?,?,?,?,?,?,?,?)";
+			st = connection.prepareStatement(requestForLigneDevis);
+			for(LigneDevis ld : devis.getLigneDevises()){
+				st.setString(1, ld.getCodeArticle());
+				st.setString(2, ld.getDesignationArticle());
+				st.setFloat(3, ld.getPrixpardefaut());
+				st.setFloat(4, ld.getPrixtarifCommercial());
+				st.setFloat(5, ld.getPrixtarifADV());
+				st.setFloat(6, ld.getQte());
+				st.setBoolean(7, ld.isAvecCatalogue());
+				st.setString(8, devis.getNdevis());
+				st.setFloat(9, ld.getQte());
+				st.setFloat(10, ld.getQtealivre());
+				st.setFloat(11, ld.getQtelivre());
+				st.execute();
+			}
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			try
+			{
+				connection.close();
+			}
+			catch (SQLException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public void addDevis(Devis devis){
+		String request = "INSERT INTO Devis(Ndevis,DateCreation,NClient,IntituleClient,NbrRelanceClient,Pj,ice)"
+				+ "VALUES(?,?,?,?,?,?,?)";
+		try
+		{
+			st =connection.prepareStatement(request);
+			st.setString(1, devis.getNdevis());
+			st.setDate  (2, new java.sql.Date(devis.getDateCreation().getTime()));
+			st.setString(3, devis.getNClient());
+			st.setString(4, devis.getIntituleClient());
+			st.setInt   (5, devis.getNbrRelanceClient());
+			st.setString(6, devis.getPj());
+			st.setString(7, devis.getIce());
+			st.execute  ();
+			
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			try
+			{
+				connection.close();
+			}
+			catch (SQLException e1)
+			{
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public void updateQteLigneDevisBis(LigneDevis lignedevis){
+		try
+		{
+			String request = "update LigneDevis set qtelivree = ?,qtereste = ?,qtealivree = ?,qtePhysique = ? ,statutLigneDevis = ?  where codeArticle = ? and devis_ndevis = ? ";
+				st =connection.prepareStatement(request);
+				st.setFloat(1, lignedevis.getQtelivre());
+				st.setFloat(2, lignedevis.getQtereste());
+				st.setFloat(3, lignedevis.getQtealivre());
+				st.setString(4, lignedevis.getCodeArticle());
+				st.setFloat(5, lignedevis.getQteAffecte());
+				st.setBoolean(6, lignedevis.isStatut());
+				st.setString(7, lignedevis.getDevis().getNdevis());
+				st.execute();
+		}catch(Exception e){
+			e.printStackTrace();
+		}	
+			
+	}
+	
+	public void updateQteLigneDevis(LigneDevis lignedevis){
+		try
+		{
+			String request = "update LigneDevis set qtelivree = ?,qtereste = ?,qtealivree = ? where codeArticle = ? and devis_ndevis = ? ";
+				st =connection.prepareStatement(request);
+				st.setFloat(1, lignedevis.getQtelivre());
+				st.setFloat(2, lignedevis.getQtereste());
+				st.setFloat(3, lignedevis.getQtealivre());
+				st.setString(4, lignedevis.getCodeArticle());
+				st.setString(5, lignedevis.getDevis().getNdevis());
+				st.execute();
+		}catch(Exception e){
+			e.printStackTrace();
+		}	
+			
+	}
+	
+	public void updateLigneDevisBis(LigneDevis lignedevis){
+		try
+		{
+			String request = "update LigneDevis set prixpardefaut = ?,prixtarifCommercial = ?,prixtarifADV = ?,qtelivree = ?,qtereste = ?,qtealivree = ?,avecCatalogue = ?,qtePhysique = ?,statutLigneDevis = ?  where codeArticle = ? and devis_ndevis = ? ";
+				st =connection.prepareStatement(request);
+				st.setFloat(1, lignedevis.getPrixpardefaut());
+				st.setFloat(2, lignedevis.getPrixtarifCommercial());
+				st.setFloat(3, lignedevis.getPrixtarifADV());
+				st.setFloat(4, lignedevis.getQtelivre());
+				st.setFloat(5, lignedevis.getQtereste());
+				st.setFloat(6, lignedevis.getQtealivre());
+				st.setBoolean(7, lignedevis.isAvecCatalogue());
+				st.setFloat(8, lignedevis.getQteAffecte());
+				st.setBoolean(9, lignedevis.isStatut());
+				st.setString(10, lignedevis.getCodeArticle());
+				st.setString(11, lignedevis.getDevis().getNdevis());
+				st.execute();
+		}catch(Exception e){
+			e.printStackTrace();
+		}	
+			
+	}
+	
+	public void updateLigneDevis(LigneDevis lignedevis){
+		try
+		{
+			String request = "update LigneDevis set prixtarifADV = ?  where codeArticle = ? and devis_ndevis = ? ";
+				st =connection.prepareStatement(request);
+				st.setFloat(1, lignedevis.getPrixtarifADV());
+				st.setString(2, lignedevis.getCodeArticle());
+				st.setString(3, lignedevis.getDevis().getNdevis());
+				st.execute();
+		}catch(Exception e){
+			e.printStackTrace();
+		}	
+			
+	}
+
+	public Devis getDevis(String devisNumber){
+		
+		Devis devis = new Devis();
+		try
+		{
+			String request = "select Ndevis,NClient,IntituleClient,DateCreation,NbrRelanceClient,ice,pj from Devis where Ndevis = ? ";
+			st =connection.prepareStatement(request);
+			st.setString(1, devisNumber);
+			ResultSet rs = st.executeQuery();
+			while(rs.next()){
+				devis.setNdevis(rs.getString(1));
+				devis.setNClient(rs.getString(2));
+				devis.setIntituleClient(rs.getString(3));
+				devis.setDateCreation(rs.getDate(4));
+				devis.setNbrRelanceClient(rs.getInt(5));
+				devis.setIce(rs.getString(6));
+				devis.setPj(rs.getString(7));
+			}
+			
+			String request1 = "select nLigneDevis,codeArticle,designationArticle,prixpardefaut,prixtarifADV,prixtarifCommercial,qte"
+					+ ",qtelivree,qtereste,qtealivree,qtePhysique,statutLigneDevis,avecCatalogue"
+					+ " from LigneDevis where devis_ndevis = ? ";
+			st =connection.prepareStatement(request1);
+			st.setString(1, devisNumber);
+			ResultSet rsld = st.executeQuery();
+			List<LigneDevis> lignesdevis = new ArrayList<LigneDevis>(); 
+			while(rsld.next()){
+				LigneDevis lignedevis = new LigneDevis();
+				lignedevis.setnLigneDevis(rsld.getString(1));
+				lignedevis.setCodeArticle(rsld.getString(2));
+				lignedevis.setDesignationArticle(rsld.getString(3));
+				lignedevis.setPrixpardefaut(rsld.getFloat(4));
+				lignedevis.setPrixtarifADV(rsld.getFloat(5));
+				lignedevis.setPrixtarifCommercial(rsld.getFloat(6));
+				lignedevis.setQte(rsld.getFloat(7));
+				lignedevis.setQtedispo(getStockArticleDispoFromSage(rsld.getString(2)));
+				lignedevis.setQtelivre(rsld.getFloat(8));
+				lignedevis.setQtereste(rsld.getFloat(9));
+				lignedevis.setQtealivre(rsld.getFloat(10));
+				lignedevis.setQteAffecte(rsld.getFloat(11));
+				lignedevis.setStatut(rsld.getBoolean(12));
+				lignedevis.setAvecCatalogue(rsld.getBoolean(13));
+				lignedevis.setDevis(devis);
+				lignesdevis.add(lignedevis);				
+			}
+			
+			devis.setLigneDevises(lignesdevis);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return devis;
+	}
+	
+	public float getStockArticleDispoFromSage(String codeArticle){
+		Connection connectionSage = MEtablissementDevis.getConnectionSage();
+		float qtedispo = 0;
+		try{ 
+			String request = "select AS_QteSto from F_ARTSTOCK where AR_Ref = ? ";
+			PreparedStatement stx =connectionSage.prepareStatement(request);
+			stx.setString(1, codeArticle);
+			ResultSet rs = stx.executeQuery();
+			while(rs.next()){
+				qtedispo = rs.getFloat(1);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return qtedispo;
+	}
+	
+	public Devis getDevisWithStock(String devisNumber){
+		
+		Devis devis = new Devis();
+		try
+		{
+			String request = "select DateCreation,NClient,NbrRelanceClient from Devis where Ndevis = ? ";
+			st =connection.prepareStatement(request);
+			st.setString(1, devisNumber);
+			ResultSet rs = st.executeQuery();
+			while(rs.next()){
+				devis.setNdevis(devisNumber);
+				devis.setNClient(rs.getString(2));
+			}
+			
+			String request1 = "select codeArticle,designationArticle,prixtarifADV,qte,qtelivree,qtereste,qtealivree,prixpardefaut,prixtarifCommercial from LigneDevis where devis_ndevis = ? ";
+			st =connection.prepareStatement(request1);
+			st.setString(1, devisNumber);
+			ResultSet rsld = st.executeQuery();
+			List<LigneDevis> lignesdevis = new ArrayList<LigneDevis>(); 
+			while(rsld.next()){
+				LigneDevis lignedevis = new LigneDevis();
+				lignedevis.setCodeArticle(rsld.getString(1));
+				lignedevis.setDesignationArticle(rsld.getString(2));
+				lignedevis.setPrixtarifADV(rsld.getFloat(3));
+				lignedevis.setQte(rsld.getFloat(4));
+				lignedevis.setQtedispo(getStockArticleDispoFromSage(rsld.getString(1)));
+				lignedevis.setQtelivre(rsld.getFloat(5));
+				lignedevis.setQtereste(rsld.getFloat(6));
+				lignedevis.setQtealivre(rsld.getFloat(7));
+				lignedevis.setPrixpardefaut(rsld.getFloat(8));
+				lignedevis.setPrixtarifCommercial(rsld.getFloat(9));
+				lignedevis.setDevis(devis);
+				lignesdevis.add(lignedevis);				
+			}
+			
+			devis.setLigneDevises(lignesdevis);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return devis;
+	}
+
+	 
+	
+}

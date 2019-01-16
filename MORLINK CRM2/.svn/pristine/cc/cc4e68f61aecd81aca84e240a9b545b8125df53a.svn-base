@@ -1,0 +1,47 @@
+package com.morlink.dev.beans;
+
+public class Regle {
+	private String idRegle;
+	private float prixRegle;
+	private float qteMin;
+	private float qteMax;
+	public CategorieTarifaire categorieTarifaire;
+	public Article article;
+	public Client client;
+
+	public float getQteMax() {
+		return this.qteMax;
+	}
+
+	public void setQteMax(float qteMax) {
+		this.qteMax = qteMax;
+	}
+
+	public float getQteMin() {
+		return this.qteMin;
+	}
+
+	public void setQteMin(float qteMin) {
+		this.qteMin = qteMin;
+	}
+
+	public String getIdRegle()
+	{
+		return idRegle;
+	}
+
+	public void setIdRegle(String idRegle)
+	{
+		this.idRegle = idRegle;
+	}
+
+	public float getPrixRegle()
+	{
+		return prixRegle;
+	}
+
+	public void setPrixRegle(float prixRegle)
+	{
+		this.prixRegle = prixRegle;
+	}
+}

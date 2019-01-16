@@ -1,0 +1,32 @@
+package com.morlink.dev.beans;
+
+public class LigneLivraison {
+	private Article article;
+	private float quantite;
+	private Livraison livraison;
+	
+	
+	
+	public float getQuantite() {
+		return quantite;
+	}
+	public void setQuantite(float quantite) {
+		this.quantite = quantite;
+	}
+	public Livraison getLivraison() {
+		return livraison;
+	}
+	public void setLivraison(Livraison livraison) {
+		this.livraison = livraison;
+	}
+	public Article getArticle() {
+		return article;
+	}
+	public void setArticle(Article article) {
+		this.article = article;
+	}
+	
+	
+	
+	
+}
